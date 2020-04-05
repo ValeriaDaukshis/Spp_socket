@@ -9,21 +9,26 @@ var express = require('express'),
   
   const cors           = require('cors');
   const http = require('http').createServer(app);
-  
+  const io = require('socket.io')(http);
+
   
 // mongoose instance connection url connection
 mongoose.Promise = global.Promise;
 mongoose.connect(db.url, { useUnifiedTopology: true,useNewUrlParser: true }); 
 
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
-
 app.use(cors());
 
 var routes = require('./app/routes/index'); //importing route
 routes(app); //register the route
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+});
 
 http.listen(port, () => {
   console.log('Server starts on ' + port);
