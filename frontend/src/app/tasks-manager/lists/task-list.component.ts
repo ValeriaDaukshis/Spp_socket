@@ -28,7 +28,6 @@ export class TaskListComponent implements OnInit {
 
   getDates(h){
     this.tasks = h;
-    console.log(this.tasks);
     this.today = Date.parse(new Date(new Date().getFullYear(),new Date().getMonth(), new Date().getDate()).toString());
     this.tasks.forEach(element => {
       if(this.today > Date.parse(element.deadline))

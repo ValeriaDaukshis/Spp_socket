@@ -27,7 +27,7 @@ export class TaskFormComponent implements OnInit {
           this.task.user_id = p['userId'];
           return;
         }
-        this.taskService.getTask(p['userId'], p['id']).subscribe(h => this.initTask(h));
+        this.taskService.getTask(p['id']).subscribe(h => this.initTask(h));
         this.existed = true;
       });
   }

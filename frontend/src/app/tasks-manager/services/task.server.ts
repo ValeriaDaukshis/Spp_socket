@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
 import { Observable, onErrorResumeNext } from 'rxjs';
 import { Task } from '../models/task';
+import * as io from 'socket.io-client';
 
 @Injectable({
   providedIn: 'root'
@@ -11,61 +12,97 @@ export class TaskService {
   private headers: HttpHeaders = new HttpHeaders({
     'Content-Type':  'application/x-www-form-urlencoded',
 });
-  //private url = environment.apiUrl + '/tasks/';
-  private url = environment.apiUrl;
-  private singleUrl = environment.apiUrl + '/task/';
+  private socket = io(environment.SOCKET_ENDPOINT);
 
   constructor(private http: HttpClient) { }
 
-  getTasks(userId: Object): Observable<Array<Task>> {
-    return this.http.get<Array<Task>>(`${this.url}${userId}/tasks/`);
+  getTasks(userId: Object): Observable<Array<Task>>{
+    this.socket.emit('getTasks', userId);
+    return new Observable<Array<Task>>(observer => {
+      this.socket.on('getTasks server', (data: Array<Task>) =>
+      {
+          observer.next(data);
+      });
+  });
   }
 
   getSortedByDeadlineTasks(userId: Object): Observable<Array<Task>> {
-    return this.http.get<Array<Task>>(`${this.url}${userId}/tasks/sortByDeadline/`);
+    this.socket.emit('getSortedByDeadline', userId);
+    return new Observable<Array<Task>>(observer => {
+      this.socket.on('getSortedByDeadline server', (data: Array<Task>) =>
+      {
+          observer.next(data);
+      });
+    });
   }
 
   getSortedByNameTasks(userId: Object): Observable<Array<Task>> {
-    return this.http.get<Array<Task>>(`${this.url}${userId}/tasks/sortByName/`);
+    this.socket.emit('getSortedByName', userId);
+    return new Observable<Array<Task>>(observer => {
+      this.socket.on('getSortedByName server', (data: Array<Task>) =>
+      {
+          observer.next(data);
+      });
+    });
   }
 
   getUnfinished(userId: Object): Observable<Array<Task>> {
-    return this.http.get<Array<Task>>(`${this.url}${userId}/tasks/getUnfinished/`);
+    this.socket.emit('getUnfinished', userId);
+    return new Observable<Array<Task>>(observer => {
+      this.socket.on('getUnfinished server', (data: Array<Task>) =>
+      {
+          observer.next(data);
+      });
+    });
   }
 
-  getTask(userId: Object, taskId: number): Observable<Task> {
-    return this.http.get<Task>(`${this.url}${userId}/tasks/${taskId}`);
+  getTask(taskId: number): Observable<Task> {
+    this.socket.emit('getTask',taskId);
+    return new Observable<Task>(observer => {
+      this.socket.on('getTask server', (data: Task) =>
+      {
+          observer.next(data);
+      });
+    });
   }
 
   addTask(task: Task) : Observable<Task> {
-   console.log();
-    let form = this.init(task);
-    return this.http.post<Task>(`${this.url}${task.user_id}/task/`, form.toString(), {headers: this.headers});
+    this.socket.emit('addTask', JSON.stringify(task));
+    return new Observable<Task>(observer => {
+      this.socket.on('addTask server', (data: Task) =>
+      {
+          observer.next(data);
+      });
+    });
   }
 
   updateTask(task: Task): Observable<Task>{
-    let form = this.init(task);
-    return this.http.put<Task>(`${this.url}${task.user_id}/task/${task._id}`, form.toString(), {headers: this.headers});
+    this.socket.emit('updateTask', JSON.stringify(task));
+    return new Observable<Task>(observer => {
+      this.socket.on('updateTask server', (data: Task) =>
+      {
+          observer.next(data);
+      });
+    });
   }
 
   setTaskStatus(task: Task, status: boolean): Observable<Object> {
-    let form = this.init(task);
-    return this.http.put<Object>(`${this.url}${task.user_id}/task/${task._id}/status/${status}`, form.toString(), {headers: this.headers});
+    this.socket.emit('setTaskStatus', JSON.stringify(task), status);
+    return new Observable<Task>(observer => {
+      this.socket.on('setTaskStatus server', (data: Task) =>
+      {
+          observer.next(data);
+      });
+    });
   }
 
-  deleteTask(userId: Object, taskId: object): Observable<Object> {
-    return this.http.delete<Object>(`${this.url}${userId}/task/${taskId}`);
-  }
-
-  init( task: Task) {
-    let form = new HttpParams()
-     .set(`_id`, task._id === null ? null : task._id.toString()) 
-     .set(`deadline`, task.deadline)
-     .set(`details`, task.details)
-     .set(`isMade`, task._id === null ? "false" : task.isMade.toString())
-     .set(`name`, task.name)
-     .set(`user_id`, task.user_id === null ? null : task.user_id.toString());
-
-     return form;
+  deleteTask(taskId: object): Observable<Object> {
+    this.socket.emit('deleteTask', taskId);
+    return new Observable<Object>(observer => {
+      this.socket.on('deleteTask server', (message: String) =>
+      {
+          observer.next(message);
+      });
+    });
   }
 }

@@ -15,6 +15,8 @@ import { AuthenticationService } from './login-manager/services/authentication.s
 import { ErrorInterceptor } from './helpers/error.interceptor';
 import { JwtInterceptor } from './helpers/jwt.interceptor';
 import { RegComponent } from './login-manager/forms/reg-form.component';
+import { SocketioService } from './helpers/socketio.service';
+
 
 @NgModule({
   declarations: [
@@ -36,6 +38,7 @@ import { RegComponent } from './login-manager/forms/reg-form.component';
     HttpClient,
     TaskService,
     AuthenticationService,
+    SocketioService,
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
 

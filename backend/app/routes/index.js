@@ -1,22 +1,21 @@
 'use strict';
 
-module.exports = function(app) {
+module.exports = function(app, io) {
   var controller = require('../controllers/tasksController');
   var authController = require('../controllers/authController');
-  console.log("index");
 
-  app.route('/:userId/tasks').get(controller.getAllTasks);
-  app.route('/:userId/tasks/sortByName').get(controller.getSortedByName);
-  app.route('/:userId/tasks/sortByDeadline').get(controller.getSortedByDeadline);
-  app.route('/:userId/tasks/getUnfinished').get(controller.getUnfinished);
-  app.route('/:userId/tasks/:id').get(controller.getTaskById);
+  app.on('getTasks', (req) => controller.getAllTasks(req, io));
+  app.on('getSortedByName', (req) => controller.getSortedByName(req, io));
+  app.on('getSortedByDeadline', (req) => controller.getSortedByDeadline(req, io));
+  app.on('getUnfinished', (req) => controller.getUnfinished(req, io));
+  app.on('getTask', (taskId) => controller.getTaskById(taskId, io));
 
-  app.route('/:userId/task').post(controller.createTask);
-  app.route('/:userId/task/:id').put(controller.updateTask);
-  app.route('/:userId/task/:id/status/:statusBool').put(controller.changeTaskStatus);
+  app.on('addTask', (task) => controller.createTask(task, io));
+  app.on('updateTask', (task) => controller.updateTask(task, io));
+  app.on('deleteTask', (taskId) => controller.deleteTask(taskId, io));
 
-  app.route('/:userId/task/:id').delete(controller.deleteTask);
+  app.on('setTaskStatus', (task, status) => controller.changeTaskStatus(task, status, io));
 
-  app.route('/login').post(authController.login);
-  app.route('/registrate').post(authController.registrate);
+  app.on('login', (req) => authController.login(req, io));
+  app.on('registrate', (req) => authController.registrate(req, io));
 };

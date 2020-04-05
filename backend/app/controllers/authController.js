@@ -3,38 +3,32 @@ var mongoose = require('mongoose'),
 const jwt = require('jsonwebtoken');
 const auth = require('../config/auth');
 
-exports.login = (req, response) => {
-    let json = JSON.stringify(req.body);
-    let data = JSON.parse(json);
-
+exports.login = function(req, io) {
+    let data = JSON.parse(req);
     const note = { 
-        userName: data.userName, 
+        userName: data.username, 
         password: data.password
     };
     console.log(note);
     User.findOne(note, (err, user) => {
         if (!user) {
-            response.status(404).send({
-                message: 'User not found.'
-            });
+            io.emit("login server", 'User not found.');
             return;
         }
         if (err) {
-            response.send(err);
+            io.emit("login server", err);
             return;
         }
         user.token = generationToken(user);
 
-        response.status(200).send(user);
+        io.emit("login server", user);
     })
 };
 
-exports.registrate = function(req, res){
-    let json = JSON.stringify(req.body);
-    let data = JSON.parse(json);
-    console.log(data);
+exports.registrate = function(req, io){
+    let data = JSON.parse(req);
     const note = { 
-        userName: data.userName, 
+        userName: data.username, 
         password: data.password
     };
 
@@ -42,17 +36,15 @@ exports.registrate = function(req, res){
         new_task.save(function(err, user) {
             if (err) {
                 if (err.code === 11000) {
-                    console.log("error exists");
-                    res.status(409).send({message: 'Account already exists.'});
+                    io.emit("registrate server", 'Account already exists.');
                     return;
                 }
-                console.log(err);
-                res.status(400).send(err);
+                io.emit("registrate server", err);
                 return
             }
          else {
             user.token = generationToken(user);
-            res.status(200).send(user);
+            io.emit("registrate server", user);
         }
     });
 }
